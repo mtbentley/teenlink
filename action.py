@@ -68,7 +68,6 @@ class MakeCall(webapp2.RequestHandler):
                 message = client.messages.create(to=info.phone_number, from_='2065576875', body=self.request.get('smstext'))
             
             self.response.write("Calling your phone: answer it, make a recording after the beep, and then hang up.<br />")
-            self.response.write(self.request.url)
             
             call_id = str(int(time()))
             call = Call(key_name=call_id)
@@ -87,7 +86,6 @@ class MakeCall(webapp2.RequestHandler):
                 for i in info.run():
                     if i.phone_number not in to_call:
                         to_call.append(i.phone_number)
-            self.response.write(to_call)
             call.calls = to_call
             call.put()
             call = client.calls.create(to=self.request.get('your_phone'),
