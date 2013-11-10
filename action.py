@@ -51,7 +51,8 @@ class NewCall(webapp2.RequestHandler):
             self.response.write("<tr>")
             self.response.write("<td>" + i.fullname + "</td><td>" + i.phone_number + "</td><td><input type='checkbox' name='text' value='%s' %s/></td><td><input type='checkbox' name='call' value='%s' /></td>" % (i.fullname, ("disabled" if (i.can_text==False) else ""), i.fullname))
             self.response.write("</tr>")
-        self.response.write("<td>All PAB</td><td>(Will only text if they can receive texts)</td><td><input type='checkbox' name='PAB_text' /></td><td><input type='checkbox' name='PAB_call' /></td>")
+        self.response.write("<tr><td>All PAB</td><td>(Will only text if they can receive texts)</td><td><input type='checkbox' name='PAB_text' /></td><td><input type='checkbox' name='PAB_call' /></td><tr>")
+        self.response.write("<tr><td>All Volunteers</td><td>(Will only text if they can receive texts)</td><td><input type='checkbox' name='ALL_text' /></td><td><input type='checkbox' name='ALL_call' /></td></tr>")
         self.response.write("</table>")
         self.response.write("Text to send as sms (max 140 chars): <input type='text' name='smstext' size=140 maxlength=140 /><br />")
         self.response.write("Your phone: <input type='text' name='your_phone' /><br />")
@@ -73,6 +74,11 @@ class MakeCall(webapp2.RequestHandler):
                 for i in info.run():
                     if i.can_text and i.fullname not in to_text:
                         to_text.append(i.fullname)
+            if self.request.get('ALL_text')=="on":
+                info = db.GqlQuery("SELECT * FROM User WHERE can_text=True")
+                for i in info.run():
+                    if i.fullname not in to_text:
+                        to_text.append(i.fullname)
             for i in to_text:
                 info = db.GqlQuery("SELECT * FROM User WHERE fullname=:1", i)
                 info = info.run().next()
@@ -93,25 +99,23 @@ class MakeCall(webapp2.RequestHandler):
                 for i in info.run():
                     if i.phone_number not in to_call:
                         to_call.append(i.phone_number)
+            if self.request.get('ALL_call')=='on':
+                info = db.GqlQuery("SELECT * FROM User")
+                for i in info.run():
+                    if i.phone_number not in to_call:
+                        to_call.append(i.phone_number)
             self.response.write(to_call)
             call.calls = to_call
             call.put()
-            call = client.calls.create(to=self.request.get('your_phone'),
-                                       from_='2065576875',
-                                       url='https://teen-link.appspot.com/twiml?to_call=%s' % (call_id),
-                                       method='GET',
-                                       status_callback="https://teen-link.appspot.com/debug",
-                                       status_callback_method="GET")
-            
-class TestTest(webapp2.RequestHandler):
-    def get(self):
-        info = db.GqlQuery("SELECT * FROM User WHERE PAB=True")
-        for i in info.run():
-            print i.phone_number
+#            call = client.calls.create(to=self.request.get('your_phone'),
+ #                                      from_='2065576875',
+  #                                     url='https://teen-link.appspot.com/twiml?to_call=%s' % (call_id),
+   #                                    method='GET',
+    #                                   status_callback="https://teen-link.appspot.com/debug",
+     #                                  status_callback_method="GET")
         
 
 app = webapp2.WSGIApplication([
                                ('/action/newcall', NewCall),
-                               ('/action/makecall', MakeCall),
-                               ('/action/test', TestTest)],
+                               ('/action/makecall', MakeCall)],
                               debug=True)

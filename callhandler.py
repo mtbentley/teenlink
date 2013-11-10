@@ -74,10 +74,20 @@ class Debug(webapp2.RedirectHandler):
         for i in self.request.headers:
             logging.debug("headers: " + i + ": " + self.request.headers[i])
         logging.debug("get: " + self.request.query_string)
+        
+class MainPage(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write('<html><body>')
+        pages={"Add User":"/users/manage", "List and Edit Users":"/users/list", "Make New Call":"/action/newcall"}
+        for i in pages:
+            self.response.write("<h2><a href='%s'>%s</a></h2>" % (pages[i], i))
+            
 
 app = webapp2.WSGIApplication([
                                ('/twiml', StartHere),
                                ('/handle-recording', HandleRecording),
                                ('/make-calls', MakeCalls),
-                               ('/debug', Debug)],
+                               ('/debug', Debug),
+                               ('/index', MainPage)],
                               debug=True)
