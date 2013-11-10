@@ -51,6 +51,7 @@ class NewCall(webapp2.RequestHandler):
             self.response.write("<tr>")
             self.response.write("<td>" + i.fullname + "</td><td>" + i.phone_number + "</td><td><input type='checkbox' name='text' value='%s' %s/></td><td><input type='checkbox' name='call' value='%s' /></td>" % (i.fullname, ("disabled" if (i.can_text==False) else ""), i.fullname))
             self.response.write("</tr>")
+        self.response.write("<td>All PAB</td><td>(Will only text if they can receive texts)</td><td><input type='checkbox' name='PAB_text' /></td><td><input type='checkbox' name='PAB_call' /></td>")
         self.response.write("</table>")
         self.response.write("Text to send as sms (max 140 chars): <input type='text' name='smstext' size=140 maxlength=140 /><br />")
         self.response.write("Your phone: <input type='text' name='your_phone' /><br />")
@@ -66,12 +67,19 @@ class MakeCall(webapp2.RequestHandler):
         if can_edit:
             client = TwilioRestClient(account_sid, auth_token)
             
-            for i in self.request.get_all('text'):
+            to_text = self.request.get_all('text')
+            if self.request.get('PAB_text')=="on":
+                info = db.GqlQuery("SELECT * FROM User WHERE PAB=True")
+                for i in info.run():
+                    if i.can_text and i.fullname not in to_text:
+                        to_text.append(i.fullname)
+            for i in to_text:
                 info = db.GqlQuery("SELECT * FROM User WHERE fullname=:1", i)
                 info = info.run().next()
                 message = client.messages.create(to=info.phone_number, from_='2065576875', body=self.request.get('smstext'))
             
-            self.response.write("Calling your phone: answer it, make a recording after the beep, and then hang up.")
+            self.response.write("Calling your phone: answer it, make a recording after the beep, and then hang up.<br />")
+            self.response.write(self.request.url)
             
             call_id = str(int(time()))
             call = Call(key_name=call_id)
@@ -80,6 +88,12 @@ class MakeCall(webapp2.RequestHandler):
                 info = db.GqlQuery("SELECT * FROM User WHERE fullname=:1", i)
                 info = info.run().next()
                 to_call.append(info.phone_number)
+            if self.request.get('PAB_call')=="on":
+                info = db.GqlQuery("SELECT * FROM User WHERE PAB=True")
+                for i in info.run():
+                    if i.phone_number not in to_call:
+                        to_call.append(i.phone_number)
+            self.response.write(to_call)
             call.calls = to_call
             call.put()
             call = client.calls.create(to=self.request.get('your_phone'),
@@ -88,9 +102,16 @@ class MakeCall(webapp2.RequestHandler):
                                        method='GET',
                                        status_callback="https://teen-link.appspot.com/debug",
                                        status_callback_method="GET")
+            
+class TestTest(webapp2.RequestHandler):
+    def get(self):
+        info = db.GqlQuery("SELECT * FROM User WHERE PAB=True")
+        for i in info.run():
+            print i.phone_number
         
 
 app = webapp2.WSGIApplication([
                                ('/action/newcall', NewCall),
-                               ('/action/makecall', MakeCall)],
+                               ('/action/makecall', MakeCall),
+                               ('/action/test', TestTest)],
                               debug=True)

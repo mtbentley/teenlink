@@ -21,8 +21,7 @@ class StartHere(webapp2.RequestHandler):
             twilio_signature = ""
         r = twiml.Response()
         if not validator.validate(url, params, twilio_signature):
-            r.say("There was a slight error.  Please call tech support.")
-        r.record(maxLength="45", action="/handle-recording?call_id=%s" % (self.request.get('call_id')), method="GET")
+            r.record(maxLength="45", action="/handle-recording?call_id=%s" % (self.request.get('call_id')), method="GET")
         self.response.headers['Content-Type'] = 'text/xml'
         self.response.write(str(r))
         
@@ -40,8 +39,6 @@ class HandleRecording(webapp2.RedirectHandler):
             info = Call.all()
             info.order('-__key__')
             info = info.run().next().calls
-            for i in info:
-                print i
             for i in info:
                 call = client.calls.create(to=i, from_="2065576875",
                                            url="https://teen-link.appspot.com/make-calls?RecordingUrl=" + self.request.get("RecordingUrl"),
@@ -64,6 +61,7 @@ class MakeCalls(webapp2.RedirectHandler):
             twilio_signature = ""
         if validator.validate(url, params, twilio_signature):
             r = twiml.Response()
+            r.play(self.request.get("RecordingUrl"))
             r.play(self.request.get("RecordingUrl"))
             self.response.headers['Content-Type'] = 'text/xml'
             self.response.write(str(r))
