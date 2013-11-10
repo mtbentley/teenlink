@@ -107,12 +107,12 @@ class MakeCall(webapp2.RequestHandler):
             self.response.write(to_call)
             call.calls = to_call
             call.put()
-#            call = client.calls.create(to=self.request.get('your_phone'),
- #                                      from_='2065576875',
-  #                                     url='https://teen-link.appspot.com/twiml?to_call=%s' % (call_id),
-   #                                    method='GET',
-    #                                   status_callback="https://teen-link.appspot.com/debug",
-     #                                  status_callback_method="GET")
+            call = client.calls.create(to=self.request.get('your_phone'),
+                                       from_='2065576875',
+                                       url='https://teen-link.appspot.com/twiml?to_call=%s' % (call_id),
+                                       method='GET',
+                                       status_callback="https://teen-link.appspot.com/debug",
+                                       status_callback_method="GET")
         
 
 app = webapp2.WSGIApplication([
