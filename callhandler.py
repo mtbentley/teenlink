@@ -13,6 +13,7 @@ class Call(db.Model):
     
 def add_header(self):
     self.response.write("Welcome " + str(users.get_current_user()) + "<br />")
+    self.response.write("<a href='/index'>Home</a>")
     if str(users.get_current_user())==ADMIN:
         self.response.write("You're an admin!<br />")
         self.response.write('<a href="%s">%s</a>' % (users.create_logout_url(self.request.uri), 'Logout'))
@@ -98,7 +99,7 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
         self.response.write('<html><body>')
-        can_edit = add_header(self)
+        add_header(self)
         pages={"Add User":"/users/manage", "List and Edit Users":"/users/list", "Make New Call":"/action/newcall"}
         for i in pages:
             self.response.write("<h2><a href='%s'>%s</a></h2>" % (pages[i], i))
@@ -110,5 +111,6 @@ app = webapp2.WSGIApplication([
                                ('/handle-recording', HandleRecording),
                                ('/make-calls', MakeCalls),
                                ('/debug', Debug),
-                               ('/index', MainPage)],
+                               ('/index', MainPage),
+                               ('/', MainPage)],
                               debug=True)
