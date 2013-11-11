@@ -1,18 +1,11 @@
 import webapp2
+import jinja2
 import cgi
+import os
 from google.appengine.ext import db
-from google.appengine.api import users
 from time import sleep
-
-TEMPLATE="""
-        <div>Full Name: <input type="text" name="name"/></div>
-        <div>Phone Number: <input type="text" name="phone"/></div>
-        <div>Phone worker? <input type="checkbox" name="pw" /></div>
-        <div>Can text? <input type="checkbox" name="text" /></div>
-        <div>PAB member? <input type="checkbox" name="PAB" /></div>
-"""
-
-DEFAULT_DB="all_users"
+from google.appengine.api import users
+from private import ADMIN
 
 from common import add_header
 
@@ -23,19 +16,37 @@ class User(db.Model):
     phone_worker = db.BooleanProperty()
     can_text = db.BooleanProperty()
     PAB = db.BooleanProperty()
-    
+
+JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True)
 
 class Manage(webapp2.RequestHandler):
     """This really is only for adding users...I should rename it"""
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write("<html><body>")
-        can_edit = add_header(self)
-        if can_edit:
-            self.response.write("<form action='/users/add' method='GET'>")
-            self.response.write(TEMPLATE)
-            self.response.write("<input type='submit' value='submit' /></form>")
-        self.response.write("</body></html>")
+        if ADMIN.upper()==str(users.get_current_user()).upper():
+            is_admin=True
+        else:
+            is_admin=False
+        template_values = {
+                          'user':str(users.get_current_user()),
+                          'admin':is_admin,
+                          'link_url':(users.create_logout_url(self.request.uri) if users.get_current_user() else users.create_login_url(self.request.uri)),
+                          'link_text':("Logout" if users.get_current_user() else "Login")
+                          }
+        
+        template = JINJA_ENVIRONMENT.get_template('manage.html')
+        self.response.write(template.render(template_values))
+        
+#        self.response.headers['Content-Type'] = 'text/html'
+#        self.response.write("<html><body>")
+#        can_edit = add_header(self)
+#        if can_edit:
+#            self.response.write("<form action='/users/add' method='GET'>")
+#            self.response.write(TEMPLATE)
+#            self.response.write("<input type='submit' value='submit' /></form>")
+#        self.response.write("</body></html>")
             
             
 class UserAdd(webapp2.RequestHandler):
