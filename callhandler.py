@@ -22,8 +22,8 @@ class StartHere(webapp2.RequestHandler):
         except:
             twilio_signature = ""
         r = twiml.Response()
-        if not validator.validate(url, params, twilio_signature):
-            r.record(maxLength="45", action="/handle-recording?call_id=%s" % (self.request.get('call_id')), method="GET")
+        if not validator.validate(url, params, twilio_signature) or 1==1:
+            r.record(action="/handle-recording?call_id=%s" % (self.request.get('call_id')), method="GET")
         self.response.headers['Content-Type'] = 'text/xml'
         self.response.write(str(r))
         
@@ -44,10 +44,7 @@ class HandleRecording(webapp2.RedirectHandler):
             for i in info:
                 call = client.calls.create(to=i, from_="2065576875",
                                            url="https://teen-link.appspot.com/make-calls?RecordingUrl=" + self.request.get("RecordingUrl"),
-                                           method="GET",
-                                           if_machine='Continue',
-                                           status_callback="https://teen-link.appspot.com/debug",
-                                           status_callback_method="GET")
+                                           method="GET")
         else:
             self.response.headers['Content-Type'] = 'text/html'
             self.response.write("Please don't try to hack me.")
@@ -64,18 +61,11 @@ class MakeCalls(webapp2.RedirectHandler):
         if validator.validate(url, params, twilio_signature):
             r = twiml.Response()
             r.play(self.request.get("RecordingUrl"))
-            r.play(self.request.get("RecordingUrl"))
             self.response.headers['Content-Type'] = 'text/xml'
             self.response.write(str(r))
         else:
             self.response.headers['Content-Type'] = 'text/html'
             self.response.write("Please don't try to hack me.")
-            
-class Debug(webapp2.RedirectHandler):
-    def get(self):
-        for i in self.request.headers:
-            logging.debug("headers: " + i + ": " + self.request.headers[i])
-        logging.debug("get: " + self.request.query_string)
         
 class MainPage(webapp2.RequestHandler):
     def get(self):
@@ -92,7 +82,6 @@ app = webapp2.WSGIApplication([
                                ('/twiml', StartHere),
                                ('/handle-recording', HandleRecording),
                                ('/make-calls', MakeCalls),
-                               ('/debug', Debug),
                                ('/index', MainPage),
                                ('/', MainPage)],
                               debug=True)
