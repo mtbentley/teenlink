@@ -6,7 +6,6 @@ from google.appengine.ext import db
 from time import sleep
 from google.appengine.api import users
 from private import ADMIN
-
 from common import add_header
 
 class User(db.Model):

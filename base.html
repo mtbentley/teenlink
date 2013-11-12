@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+	<head>
+		<title>{% block title %}{% endblock %}</title>
+	</head>
+	
+	<body>
+		<a href="/index">Home</a><br />
+		Welcome {{ user }}!<br />
+		{% if admin %}
+			You're an admin!<br />
+		{% else %}
+			You're not an admin!<br />
+		{% endif %}
+		<a href="{{ link_url|safe }}">{{ link_text }}</a>
+		
+		{% block content %}{% endblock %}
+
+	</body>
+</html>
+{% endautoescape %}

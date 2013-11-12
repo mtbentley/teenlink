@@ -1,29 +1,15 @@
-<!DOCTYPE html>
-{% autoescape true %}
-<html>
-	<head>
-		<title>Add a new user</title>
-	</head>
-	
-	<body>
-		Welcome {{ user }}!<br />
-		{% if admin %}
-			You're an admin!<br />
-		{% else %}
-			You're not an admin!<br />
-		{% endif %}
-		<a href="{{ link_url|safe }}">{{ link_text }}</a>
-		{% if admin %}
-			<form action='/users/add' method='GET'>
-				<div>Full Name: <input type="text" name="name"/></div>
-	     		<div>Phone Number: <input type="text" name="phone"/></div>
-	        	<div>Phone worker? <input type="checkbox" name="pw" /></div>
-	        	<div>Can text? <input type="checkbox" name="text" /></div>
-	        	<div>PAB member? <input type="checkbox" name="PAB" /></div>
-	        	<input type='submit' value='submit' />
-	        </form>
-        {% endif %}
-	</body>
-	
-</html>
-{% endautoescape %}
+{% extends "base.html" %}
+{% block content %}
+	{% if admin %}
+		<form action='/users/add' method='get'>
+			<div>Full Name: <input type="text" name="name"/></div>
+     		<div>Phone Number: <input type="text" name="phone"/></div>
+        	<div>Phone worker? <input type="checkbox" name="pw" /></div>
+        	<div>Can text? <input type="checkbox" name="text" /></div>
+        	<div>PAB member? <input type="checkbox" name="PAB" /></div>
+        	<input type='submit' value='submit' />
+        </form>
+    {% endif %}
+{% endblock %}
+
+{% block title %}Manage{% endblock %}
