@@ -30,6 +30,7 @@ class Group(ndb.Model):
 from common import add_header
 
 class StartHere(webapp2.RequestHandler):
+    """XML response for the initial recording call"""
     def get(self):
         validator = RequestValidator(auth_token)
         url = self.request.url
@@ -46,6 +47,7 @@ class StartHere(webapp2.RequestHandler):
         self.response.write(str(r))
         
 class HandleRecording(webapp2.RedirectHandler):
+    """Makes calls to everyone who needs to get the call, points twilio to make-calls"""
     def get(self):
         client = TwilioRestClient(account_sid, auth_token)
         validator = RequestValidator(auth_token)
@@ -76,6 +78,7 @@ class HandleRecording(webapp2.RedirectHandler):
             self.response.write("Please don't try to hack me.")
 
 class MakeCalls(webapp2.RedirectHandler):
+    """Returns XML to play the recording"""
     def get(self):
         validator = RequestValidator(auth_token)
         url = self.request.url
@@ -94,6 +97,7 @@ class MakeCalls(webapp2.RedirectHandler):
             self.response.write("Please don't try to hack me.")
         
 class MainPage(webapp2.RequestHandler):
+    """Main landing page with links to different pages"""
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
         self.response.write('<html><body>')
