@@ -7,8 +7,8 @@ from twilio.util import RequestValidator
 from google.appengine.ext import ndb
 import logging
 import json
- 
 from private import account_sid, auth_token
+from common import make_template
 
 class Call(ndb.Model):
     """Model for the calls db"""
@@ -25,6 +25,11 @@ class User(ndb.Model):
 class Group(ndb.Model):
     """Model for groups db"""
     groupname = ndb.StringProperty(indexed=True)
+    
+JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True)
 
     
 from common import add_header
@@ -58,7 +63,7 @@ class HandleRecording(webapp2.RedirectHandler):
             logging.debug(twilio_signature)
         except:
             twilio_signature = ""
-        if validator.validate(url, params, twilio_signature) or 1==1:
+        if validator.validate(url, params, twilio_signature):
             logging.debug("Validated")
             call_id = self.request.get('to_call')
             print call_id
@@ -99,13 +104,12 @@ class MakeCalls(webapp2.RedirectHandler):
 class MainPage(webapp2.RequestHandler):
     """Main landing page with links to different pages"""
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write('<html><body>')
-        add_header(self)
+        template_values = make_template(self)
         pages={"Add User":"/users/manage", "List and Edit Users":"/users/list", "Make New Call":"/action/newcall"}
-        for i in pages:
-            self.response.write("<h2><a href='%s'>%s</a></h2>" % (pages[i], i))
-        self.response.write("</body></html>")
+        template_values['pages'] = pages
+        
+        template = JINJA_ENVIRONMENT.get_template('home.jinja')
+        self.response.write(template.render(template_values))
         
 #class Test(webapp2.RequestHandler):
 #    def get(self):

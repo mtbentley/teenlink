@@ -1,0 +1,10 @@
+{% extends "base.jinja" %}
+{% block content %}
+	{% for text,link in pages.iteritems() %}
+		<h2>
+			<a href='{{ link }}'>{{ text }}</a>
+		</h2>
+	{% endfor %}
+{% endblock %}
+
+{% block title %}Home{% endblock %}
