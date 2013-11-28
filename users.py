@@ -2,19 +2,24 @@ import webapp2
 import jinja2
 import cgi
 import os
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 from time import sleep
 from google.appengine.api import users
 from private import ADMIN
 from common import add_header
 
-class User(db.Model):
-    """Model for the user db"""
-    fullname = db.StringProperty(indexed=True)
-    phone_number = db.StringProperty(indexed=True)
-    phone_worker = db.BooleanProperty()
-    can_text = db.BooleanProperty()
-    PAB = db.BooleanProperty()
+class User(ndb.Model):
+    """Model for the user ndb"""
+    fullname = ndb.StringProperty(indexed=True)
+    phone_number = ndb.StringProperty(indexed=True)
+    phone_worker = ndb.BooleanProperty()
+    can_text = ndb.BooleanProperty()
+    PAB = ndb.BooleanProperty()
+    
+class Group(ndb.Model):
+    """Model for groups ndb"""
+    groupname = ndb.StringProperty(indexed=True)
+    
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
@@ -53,8 +58,12 @@ class UserAdd(webapp2.RequestHandler):
     def get(self):
         can_edit = add_header(self)
         if can_edit:
-            user=User(key_name=cgi.escape(self.request.get("name")))
-            user.fullname = cgi.escape(self.request.get("name"))
+            if not self.request.get('id'):
+                user=User()
+                user.fullname = cgi.escape(self.request.get("name"))
+            if self.request.get('id'):
+                user_key = ndb.Key(User, int(self.request.get('id')))
+                user = user_key.get()
             user.phone_number = cgi.escape(self.request.get("phone"))
             user.phone_worker = (self.request.get("pw") == "on")
             user.can_text = (self.request.get("text") == "on")
@@ -72,10 +81,10 @@ class ListUser(webapp2.RequestHandler):
         if can_edit:
             self.response.write("<form action='/users/edit' method='GET'>")
         self.response.write("<table border='1'><tr><td>Name</td><td>Phone Number</td><td>Can Text?</td><td>Phone Worker?</td><td>PAB?</td><td>Edit?</td><td>Delete?</td></tr>")
-        info = db.GqlQuery("SELECT * FROM User")
-        for i in info.run():
+        info = ndb.gql("SELECT * FROM User")
+        for i in info:
             self.response.write("<tr>")
-            self.response.write("<td>" + i.fullname + "</td><td>" + i.phone_number + "</td><td>" + str(i.can_text) + "</td><td>" + str(i.phone_worker) + "</td><td>" + str(i.PAB) + "</td><td><input type='checkbox' name='name' value='" + i.fullname + "' /></td><td><input type='checkbox' name='delete' value='" + i.fullname + "' /></td>")
+            self.response.write("<td>" + i.fullname + "</td><td>" + i.phone_number + "</td><td>" + str(i.can_text) + "</td><td>" + str(i.phone_worker) + "</td><td>" + str(i.PAB) + "</td><td><input type='checkbox' name='id' value='" + str(i.key.id()) + "' /></td><td><input type='checkbox' name='delete' value='" + str(i.key.id()) + "' /></td>")
             self.response.write("</tr>")
         self.response.write("</table>")
         if can_edit:
@@ -93,23 +102,26 @@ class EditUser(webapp2.RequestHandler):
         if can_edit:
             self.response.write("<form action=/users/add method='GET'>")
             for i in self.request.get_all('delete'):
-                user = User(key_name=i)
-                user.delete()
+                user_key = ndb.Key(User, int(i))
+                user = user_key.get()
+                user.key.delete()
             
-        if not self.request.get_all('name') or not can_edit:
+        if not self.request.get_all('id') or not can_edit:
             sleep(1)
             self.redirect('/users/list')
         if can_edit:
-            for i in self.request.get_all('name'):
-                info = db.GqlQuery("SELECT * FROM User WHERE fullname=:1", i)
-                info = info.run().next()
-                self.response.write("<div>Full Name: %s</div>" % (info.fullname))
-                self.response.write("<input type='hidden' name='name' value='%s' />" % (info.fullname))
-                self.response.write("<div>Phone Number: <input type='text' name='phone' value='%s' /></div>" % (info.phone_number))
-                self.response.write("<div>Phone Worker? <input type='checkbox' name='pw' %s /></div>" % (("checked='yes'" if (info.phone_worker) else "")))
-                self.response.write("<div>Can Text? <input type='checkbox' name='text' %s /></div>" % (("checked='yes'" if (info.can_text) else "")))
-                self.response.write("<div>PAB member? <input type='checkbox' name='PAB' %s /></div>" % (("checked='yes'" if (info.PAB) else "")))
+            for i in self.request.get_all('id'):
+                user_key = ndb.Key(User, int(i))
+                user = user_key.get()
+                print user
+                self.response.write("<div>Full Name: %s</div>" % (user.fullname))
+                self.response.write("<input type='hidden' name='id' value='%s' />" % (i))
+                self.response.write("<div>Phone Number: <input type='text' name='phone' value='%s' /></div>" % (user.phone_number))
+                self.response.write("<div>Phone Worker? <input type='checkbox' name='pw' %s /></div>" % (("checked='yes'" if (user.phone_worker) else "")))
+                self.response.write("<div>Can Text? <input type='checkbox' name='text' %s /></div>" % (("checked='yes'" if (user.can_text) else "")))
+                self.response.write("<div>PAB member? <input type='checkbox' name='PAB' %s /></div>" % (("checked='yes'" if (user.PAB) else "")))
                 self.response.write("<br />")
+                break
             self.response.write("<input type='submit' value='update' />")
             self.response.write("</form>")
         self.response.write("</body></html>")

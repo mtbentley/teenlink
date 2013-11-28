@@ -13,4 +13,14 @@ indexes:
 - kind: Call
   properties:
   - name: __key__
+  - name: calls
+
+- kind: Call
+  properties:
+  - name: __key__
     direction: desc
+
+- kind: User
+  properties:
+  - name: fullname
+  - name: phone_number
