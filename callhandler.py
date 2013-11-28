@@ -65,7 +65,8 @@ class HandleRecording(webapp2.RedirectHandler):
                     print i
                     call_out = client.calls.create(to=i, from_="2065576875",
                                 url="https://teen-link.appspot.com/make-calls?RecordingUrl=" + self.request.get("RecordingUrl"),
-                                method="GET")
+                                method="GET",
+                                if_machine="Continue")
                     print call_out
         else:
             self.response.headers['Content-Type'] = 'text/html'
@@ -99,29 +100,29 @@ class MainPage(webapp2.RequestHandler):
             self.response.write("<h2><a href='%s'>%s</a></h2>" % (pages[i], i))
         self.response.write("</body></html>")
         
-class Test(webapp2.RequestHandler):
-    def get(self):
-#        if self.request.get('group'):
-#            group=Group(key_name=self.request.get('group'))
+#class Test(webapp2.RequestHandler):
+#    def get(self):
+##        if self.request.get('group'):
+##            group=Group(key_name=self.request.get('group'))
+##            group.groupname = self.request.get('group')
+##            group.put()
+#        if self.request.get('user') and self.request.get('group'):
+##            print self.request.get('user')
+##            print self.request.get('group')
+#            info = ndb.gql("SELECT * FROM User WHERE fullname=:1", self.request.get('user'))
+#            group=Group(parent=info.next().key())
 #            group.groupname = self.request.get('group')
 #            group.put()
-        if self.request.get('user') and self.request.get('group'):
-#            print self.request.get('user')
-#            print self.request.get('group')
-            info = ndb.gql("SELECT * FROM User WHERE fullname=:1", self.request.get('user'))
-            group=Group(parent=info.next().key())
-            group.groupname = self.request.get('group')
-            group.put()
-#            info = ndb.GqlQuery("SELECT * FROM Group WHERE groupname=:1", self.request.get('group'))
-#            print info.next().parent().fullname
-#            print info.next()
-#            info = ndb.GqlQuery("SELECT * FROM User WHERE fullname=:1", self.request.get('user'))
-#            key = info.next()
-#            infog = Group.all().next().parent()
-#            info = User.all().filter("fullname ==", self.request.get('user'))
-#            info2 = info
-#            print infog.fullname
-#            print dir(infog.ancestor(key).next())
+##            info = ndb.GqlQuery("SELECT * FROM Group WHERE groupname=:1", self.request.get('group'))
+##            print info.next().parent().fullname
+##            print info.next()
+##            info = ndb.GqlQuery("SELECT * FROM User WHERE fullname=:1", self.request.get('user'))
+##            key = info.next()
+##            infog = Group.all().next().parent()
+##            info = User.all().filter("fullname ==", self.request.get('user'))
+##            info2 = info
+##            print infog.fullname
+##            print dir(infog.ancestor(key).next())
             
 
 app = webapp2.WSGIApplication([
@@ -129,6 +130,5 @@ app = webapp2.WSGIApplication([
                                ('/handle-recording', HandleRecording),
                                ('/make-calls', MakeCalls),
                                ('/index', MainPage),
-                               ('/', MainPage),
-                               ('/test', Test)],
+                               ('/', MainPage)],
                               debug=True)
