@@ -7,9 +7,10 @@ from time import sleep
 from google.appengine.api import users
 from private import ADMIN
 from common import add_header
+from common import make_template
 
 class User(ndb.Model):
-    """Model for the user ndb"""
+    """Model for the user db"""
     fullname = ndb.StringProperty(indexed=True)
     phone_number = ndb.StringProperty(indexed=True)
     phone_worker = ndb.BooleanProperty()
@@ -17,7 +18,7 @@ class User(ndb.Model):
     PAB = ndb.BooleanProperty()
     
 class Group(ndb.Model):
-    """Model for groups ndb"""
+    """Model for groups db"""
     groupname = ndb.StringProperty(indexed=True)
     
 
@@ -29,16 +30,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 class Manage(webapp2.RequestHandler):
     """This really is only for adding users...I should rename it"""
     def get(self):
-        if ADMIN.upper()==str(users.get_current_user()).upper():
-            is_admin=True
-        else:
-            is_admin=False
-        template_values = {
-                          'user':str(users.get_current_user()),
-                          'admin':is_admin,
-                          'link_url':(users.create_logout_url(self.request.uri) if users.get_current_user() else users.create_login_url(self.request.uri)),
-                          'link_text':("Logout" if users.get_current_user() else "Login")
-                          }
+        template_values = make_template(self)
         
         template = JINJA_ENVIRONMENT.get_template('manage.html')
         self.response.write(template.render(template_values))

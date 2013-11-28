@@ -1,15 +1,17 @@
 import webapp2
-
+import jinja2
+import os
 from google.appengine.ext import ndb
 from twilio.rest import TwilioRestClient
 from time import time
 import json
 import logging
-
+from common import make_template
 from private import account_sid, auth_token
+from common import add_header
 
 class User(ndb.Model):
-    """Model for the user ndb"""
+    """Model for the user db"""
     fullname = ndb.StringProperty(indexed=True)
     phone_number = ndb.StringProperty(indexed=True)
     phone_worker = ndb.BooleanProperty()
@@ -17,34 +19,52 @@ class User(ndb.Model):
     PAB = ndb.BooleanProperty()
     
 class Call(ndb.Model):
+    """model for the calls db"""
     calls = ndb.StringProperty(indexed=True)
-
-from common import add_header
+    
+JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True)
 
 
 class NewCall(webapp2.RequestHandler):
     """This gives a page to make a call to any specified users"""
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write('<html><body>')
-        can_edit = add_header(self)
-        if can_edit:
-            self.response.write("<form action='/action/makecall' method='GET'>")
-        self.response.write("<table border='1'><tr><td>Name</td><td>Phone Number</td><td>Send SMS?</td><td>Send Voice message?</td></tr>")
+        template_values = make_template(self)
+        
         info = ndb.gql("SELECT * FROM User")
+        user_list = []
         for i in info:
-            self.response.write("<tr>")
-            self.response.write("<td>" + i.fullname + "</td><td>" + i.phone_number + "</td><td><input type='checkbox' name='text' value='%s' %s/></td><td><input type='checkbox' name='call' value='%s' /></td>" % (i.fullname, ("disabled" if (i.can_text==False) else ""), i.fullname))
-            self.response.write("</tr>")
-        self.response.write("<tr><td>All PAB</td><td>(Will only text if they can receive texts)</td><td><input type='checkbox' name='PAB_text' /></td><td><input type='checkbox' name='PAB_call' /></td><tr>")
-        self.response.write("<tr><td>All Volunteers</td><td>(Will only text if they can receive texts)</td><td><input type='checkbox' name='ALL_text' /></td><td><input type='checkbox' name='ALL_call' /></td></tr>")
-        self.response.write("</table>")
-        self.response.write("Text to send as sms (max 140 chars): <input type='text' name='smstext' size=140 maxlength=140 /><br />")
-        self.response.write("Your phone: <input type='text' name='your_phone' /><br />")
-        if can_edit:
-            self.response.write("<input type='submit' value='submit' />")
-            self.response.write("</form>")
-        self.response.write("</body></html>")
+            to_append = {}
+            to_append['fullname'] = i.fullname
+            to_append['phone_number'] = i.phone_number
+            to_append['can_text'] = "disabled" if (i.can_text==False) else ""
+            user_list.append(to_append)
+        template_values['user_list'] = user_list
+        
+        template = JINJA_ENVIRONMENT.get_template('newcall.html')
+        self.response.write(template.render(template_values))
+#        self.response.headers['Content-Type'] = 'text/html'
+#        self.response.write('<html><body>')
+#        can_edit = add_header(self)
+#        if can_edit:
+#            self.response.write("<form action='/action/makecall' method='GET'>")
+#        self.response.write("<table border='1'><tr><td>Name</td><td>Phone Number</td><td>Send SMS?</td><td>Send Voice message?</td></tr>")
+#        info = ndb.gql("SELECT * FROM User")
+#        for i in info:
+#            self.response.write("<tr>")
+#            self.response.write("<td>" + i.fullname + "</td><td>" + i.phone_number + "</td><td><input type='checkbox' name='text' value='%s' %s/></td><td><input type='checkbox' name='call' value='%s' /></td>" % (i.fullname, ("disabled" if (i.can_text==False) else ""), i.fullname))
+#            self.response.write("</tr>")
+#        self.response.write("<tr><td>All PAB</td><td>(Will only text if they can receive texts)</td><td><input type='checkbox' name='PAB_text' /></td><td><input type='checkbox' name='PAB_call' /></td><tr>")
+#        self.response.write("<tr><td>All Volunteers</td><td>(Will only text if they can receive texts)</td><td><input type='checkbox' name='ALL_text' /></td><td><input type='checkbox' name='ALL_call' /></td></tr>")
+#        self.response.write("</table>")
+#        self.response.write("Text to send as sms (max 140 chars): <input type='text' name='smstext' size=140 maxlength=140 /><br />")
+#        self.response.write("Your phone: <input type='text' name='your_phone' /><br />")
+#        if can_edit:
+#            self.response.write("<input type='submit' value='submit' />")
+#            self.response.write("</form>")
+#        self.response.write("</body></html>")
         
 class MakeCall(webapp2.RequestHandler):
     """Actually does call and text type stuff.  Yay.""" 

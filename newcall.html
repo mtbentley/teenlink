@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+	{% if admin %}
+		<form action='/action/makecall' method='get'>
+			<table border='1'>
+				<tr>
+					<td>Name</td>
+					<td>Phone Number</td>
+					<td>Send SMS?</td>
+					<td>Send Voice message?</td>
+				</tr>
+				{% for user in user_list %}
+					<tr>
+						<td>{{ user['fullname'] }}</td>
+						<td>{{ user['phone_number'] }}</td>
+						<td><input type='checkbox' name='text' value='{{ user['fullname'] }}' {{ user['can_text'] }}/></td>
+						<td><input type='checkbox' name='call' value='{{ user['fullname'] }}' /></td>
+					</tr>
+				{% endfor %}
+				<tr>
+					<td>All PAB</td>
+					<td>(Will only text if they can receive texts)</td>
+					<td><input type='checkbox' name='PAB_text' /></td>
+					<td><input type='checkbox' name='PAB_call' /></td>
+				</tr>
+				<tr>
+					<td>All Volunteers</td>
+					<td>(Will only text if they can receive texts)</td>
+					<td><input type='checkbox' name='ALL_text' /></td>
+					<td><input type='checkbox' name='ALL_call' /></td>
+				</tr>
+			</table>
+			<p>Text to send as sms (max 140 chars): <input type='text' name='smstext' size=140 maxlength=140 /><br />
+				Your phone: <input type='text' name='your_phone' />
+			</p>
+			<input type='submit' value='submit' />
+			</form>
+			
+	{% endif %}
+{% endblock %}
+
+{% block title %}New Call{% endblock %}

@@ -9,10 +9,11 @@ import json
 from private import account_sid, auth_token
 
 class Call(ndb.Model):
+    """Model for the calls db"""
     calls = ndb.StringProperty(indexed=True)
     
 class User(ndb.Model):
-    """Model for the user ndb"""
+    """Model for the user db"""
     fullname = ndb.StringProperty(indexed=True)
     phone_number = ndb.StringProperty(indexed=True)
     phone_worker = ndb.BooleanProperty()
@@ -20,7 +21,7 @@ class User(ndb.Model):
     PAB = ndb.BooleanProperty()
     
 class Group(ndb.Model):
-    """Model for groups ndb"""
+    """Model for groups db"""
     groupname = ndb.StringProperty(indexed=True)
 
     
