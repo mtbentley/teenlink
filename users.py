@@ -4,8 +4,6 @@ import cgi
 import os
 from google.appengine.ext import ndb
 from time import sleep
-from google.appengine.api import users
-from private import ADMIN
 from common import add_header
 from common import make_template
 
@@ -32,18 +30,8 @@ class Manage(webapp2.RequestHandler):
     def get(self):
         template_values = make_template(self)
         
-        template = JINJA_ENVIRONMENT.get_template('manage.html')
+        template = JINJA_ENVIRONMENT.get_template('manage.jinja')
         self.response.write(template.render(template_values))
-        
-#        self.response.headers['Content-Type'] = 'text/html'
-#        self.response.write("<html><body>")
-#        can_edit = add_header(self)
-#        if can_edit:
-#            self.response.write("<form action='/users/add' method='GET'>")
-#            self.response.write(TEMPLATE)
-#            self.response.write("<input type='submit' value='submit' /></form>")
-#        self.response.write("</body></html>")
-            
             
 class UserAdd(webapp2.RequestHandler):
     """The backend of adding and modifying users.  You never see this page"""

@@ -42,7 +42,7 @@ class NewCall(webapp2.RequestHandler):
             user_list.append(to_append)
         template_values['user_list'] = user_list
         
-        template = JINJA_ENVIRONMENT.get_template('newcall.html')
+        template = JINJA_ENVIRONMENT.get_template('newcall.jinja')
         self.response.write(template.render(template_values))
         
 class MakeCall(webapp2.RequestHandler):
@@ -94,7 +94,7 @@ class MakeCall(webapp2.RequestHandler):
                                        url='https://teen-link.appspot.com/twiml?to_call=%s' % (str(call_id)),
                                        method='GET')
             logging.debug(call_out)
-        template = JINJA_ENVIRONMENT.get_template('makecall.html')
+        template = JINJA_ENVIRONMENT.get_template('makecall.jinja')
         self.response.write(template.render(template_values))
         
 
