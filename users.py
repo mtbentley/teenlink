@@ -55,23 +55,22 @@ class UserAdd(webapp2.RequestHandler):
 class ListUser(webapp2.RequestHandler):
     """Lists all users, with option to edit or delete each one"""
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write('<html><body>')
-        can_edit = add_header(self)
-        if can_edit:
-            self.response.write("<form action='/users/edit' method='GET'>")
-        self.response.write("<table border='1'><tr><td>Name</td><td>Phone Number</td><td>Can Text?</td><td>Phone Worker?</td><td>PAB?</td><td>Edit?</td><td>Delete?</td></tr>")
+        template_values = make_template(self)
         info = ndb.gql("SELECT * FROM User")
+        user_list = []
         for i in info:
-            self.response.write("<tr>")
-            self.response.write("<td>" + i.fullname + "</td><td>" + i.phone_number + "</td><td>" + str(i.can_text) + "</td><td>" + str(i.phone_worker) + "</td><td>" + str(i.PAB) + "</td><td><input type='checkbox' name='id' value='" + str(i.key.id()) + "' /></td><td><input type='checkbox' name='delete' value='" + str(i.key.id()) + "' /></td>")
-            self.response.write("</tr>")
-        self.response.write("</table>")
-        if can_edit:
-            self.response.write("<input type='submit' value='submit' />")
-            self.response.write("</form>")
-            self.response.write("<a href='/users/manage'>Add a user</a>")
-        self.response.write("</body></html>")
+            to_append = {}
+            to_append['fullname'] = i.fullname
+            to_append['phone_number'] = i.phone_number
+            to_append['can_text'] = i.can_text
+            to_append['phone_worker'] = i.phone_worker
+            to_append['pab'] = i.PAB
+            to_append['id'] = str(i.key.id())
+            user_list.append(to_append)
+        template_values['user_list'] = user_list
+        
+        template = JINJA_ENVIRONMENT.get_template('list.jinja')
+        self.response.write(template.render(template_values))
         
 class EditUser(webapp2.RequestHandler):
     """This page actually edits users marked in ListUser, and deletes users marked for deletion"""
