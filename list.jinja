@@ -1,0 +1,33 @@
+{% extends "base.jinja" %}
+{% block content %}
+	{% if admin %}
+		<form action='/users/edit' method='get'>
+			<table border='1'>
+				<tr>
+					<td>Name</td>
+					<td>Phone Number</td>
+					<td>Can Text?</td>
+					<td>Phone Worker?</td>
+					<td>PAB?</td>
+					<td>Edit?</td>
+					<td>Delete?</td>
+				</tr>
+				{% for user in user_list %}
+					<tr>
+						<td>{{ user['fullname'] }}</td>
+						<td>{{ user['phone_number'] }}</td>
+						<td>{{ user['can_text'] }}</td>
+						<td>{{ user['phone_worker'] }}</td>
+						<td>{{ user['pab'] }}</td>
+						<td><input type='checkbox' name='id' value='{{ user['id'] }}' /></td>
+						<td><input type='checkbox' name='delete' value='{{ user['id'] }}' /></td>
+					</tr>
+				{% endfor %}
+			</table>
+			<input type='submit' value='submit' />
+		</form>
+		<p><a href='/users/manage'>Add a user</a></p>
+    {% endif %}
+{% endblock %}
+
+{% block title %}List Users{% endblock %}
