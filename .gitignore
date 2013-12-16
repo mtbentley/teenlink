@@ -34,3 +34,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+httplib2
+private.py
+six.py
+twilio
+venv
