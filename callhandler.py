@@ -74,7 +74,7 @@ class HandleRecording(webapp2.RedirectHandler):
                 for i in json.loads(info.calls):
                     print i
                     call_out = client.calls.create(to=i, from_="2065576875",
-                                url="https://teen-link.appspot.com/make-calls?RecordingUrl=" + self.request.get("RecordingUrl"),
+                                                     url="https://teen-link.appspot.com/make-calls?RecordingUrl=" + self.request.get("RecordingUrl"),
                                 method="GET",
                                 if_machine="Continue")
                     print call_out

@@ -19,7 +19,7 @@ class User(ndb.Model):
     
 class Call(ndb.Model):
     """model for the calls db"""
-    calls = ndb.StringProperty(indexed=True)
+    calls = ndb.TextProperty(indexed=False)
     
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
@@ -73,9 +73,9 @@ class MakeCall(webapp2.RequestHandler):
             call = Call(key=ndb.Key(Call, call_id))
             to_call = []
             for i in self.request.get_all('call'):
-                infos = ndb.gql("SELECT * FROM User WHERE fullname=:1", i)
-                info = info
-                to_call.append(info.phone_number)
+                info = ndb.gql("SELECT * FROM User WHERE fullname=:1", i)
+                for i in info:
+                    to_call.append(i.phone_number)
             if self.request.get('PAB_call')=="on":
                 info = ndb.gql("SELECT * FROM User WHERE PAB=True")
                 for i in info:
